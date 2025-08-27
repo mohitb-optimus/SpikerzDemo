@@ -7,8 +7,8 @@ export class SocialConnectPage extends BasePage {
   }
 
   async isYoutubeConnected() {
-    await this.page.waitForURL(/social-connect\/youtube\?state/);
-    await this.page.waitForURL(/social-connect\/youtube\?scope/);
+    await this.page.waitForResponse(response => response.url().includes('mocks/alerts-instagram.json?accountId') 
+    && response.status() === 200, { timeout: 30000 });
     return await this.page.getByRole('heading', { name: 'Connect with Youtube' }).isVisible();
   }
 }

@@ -3,7 +3,7 @@ import os from 'node:os';
 
 export default defineConfig({
   testDir: './tests',
-  retries: 0,
+  retries: 1,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],

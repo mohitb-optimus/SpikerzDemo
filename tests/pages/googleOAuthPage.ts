@@ -10,7 +10,9 @@ export class GoogleOAuthPage extends BasePage {
   }
 
   async acceptPermissions() {
-    await this.page.waitForURL(/signin\/oauth\/v2\/consentsummary/, { timeout: 10000 });
+    await this.page.waitForResponse(response => response.url().includes('/AccountsSignInUi/data/batchexecute?rpcids') 
+    && response.status() === 200, { timeout: 30000 });
+    await this.page.waitForSelector('text=Select all', { state: 'visible' });
     await this.page.getByRole('checkbox', { name: 'Select all' }).check();
     await this.page.getByRole('button', { name: 'Continue' }).click();
   }

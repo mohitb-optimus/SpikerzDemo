@@ -1,5 +1,5 @@
 {
-  "name": "playwright-auth-framework",
+  "name": "Spikerz Demo Project",
   "version": "1.0.0",
   "description": "Playwright + TypeScript framework with session and Allure reporting",
   "scripts": {

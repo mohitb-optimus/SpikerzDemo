@@ -32,7 +32,7 @@ test('Connect YouTube via Google OAuth', async ({ browser }, testInfo) => {
 
   await test.step('Grant permissions and verify YouTube connection', async () => {
     await googlePage.acceptPermissions();
-    await expect(await socialPage.isYoutubeConnected()).toBeTruthy();
+    expect(await socialPage.isYoutubeConnected()).toBeTruthy();
     await testInfo.attach('YouTube Connected', { body: await page.screenshot(), contentType: 'image/png' });
   });
 });
