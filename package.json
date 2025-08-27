@@ -1,0 +1,19 @@
+{
+  "name": "playwright-auth-framework",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript framework with session and Allure reporting",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "build": "tsc",
+    "clean": "rm -rf test-results playwright-report allure-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "@types/node": "^24.3.0",
+    "allure-playwright": "^2.0.0",
+    "dotenv": "^16.0.0",
+    "typescript": "^5.5.4"
+  }
+}
