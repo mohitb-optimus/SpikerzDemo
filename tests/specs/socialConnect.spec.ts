@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { env } from '../utils/env';
-import { LoginPage } from '../pages/loginPage';
 import { SocialConnectPage } from '../pages/socialConnectPage';
 import { GoogleOAuthPage } from '../pages/googleOAuthPage';
 import { LoginManager } from '../core/loginManager';

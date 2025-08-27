@@ -8,6 +8,7 @@ export class SocialConnectPage extends BasePage {
 
   async isYoutubeConnected() {
     await this.page.waitForURL(/social-connect\/youtube\?state/);
+    await this.page.waitForURL(/social-connect\/youtube\?scope/);
     return await this.page.getByRole('heading', { name: 'Connect with Youtube' }).isVisible();
   }
 }

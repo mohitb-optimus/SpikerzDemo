@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { env } from '../utils/env';
-import { LoginPage } from '../pages/loginPage';
-import { SocialConnectPage } from '../pages/socialConnectPage';
-import { GoogleOAuthPage } from '../pages/googleOAuthPage';
 import { LoginManager } from '../core/loginManager';
 
-test('Connect YouTube via Google OAuth', async ({ browser }, testInfo) => {
+test('Login to Home Page', async ({ browser }, testInfo) => {
  
   const loginManager = new LoginManager(browser);
   const context = await loginManager.createContextWithCredentials(env.username, env.password);
