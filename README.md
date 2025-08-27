@@ -10,6 +10,20 @@ This project is a Playwright + TypeScript test automation framework with session
 - Modular page object structure
 - Environment variable support via `.env`
 
+## Overview of Architectural Choices
+
+- Playwright + TypeScript test runner: modern, fast E2E with type safety. Your config is centralized in playwright.config.ts. 
+- Session authentication via storage state: login state is persisted in auth.json, reducing repeated UI logins and speeding up suites. 
+- Modular Page Object Model (POM): page objects live under tests/pages/, with shared core utilities under tests/core/ for reuse and maintainability.
+- Environment-driven configuration: .env variables (exposed through tests/utils/env.ts) allow easy switching across environments without code edits.
+- Dual reporting: Playwright’s built-in HTML report for quick local debugging, plus Allure for rich, shareable, historical reporting.
+
+## Prerequisites
+
+- Node.js 18+ (for local development)
+- A valid Google/YouTube account
+- Access to the Spikerz platform
+
 ## Project Structure
 
 - `tests/` - Test specs, page objects, core utilities
@@ -28,7 +42,7 @@ This project is a Playwright + TypeScript test automation framework with session
 | `npm run build` | Compile TypeScript                      |
 | `npm run clean` | Remove test and report output folders    |
 
-## Setup
+## Setup Instructions
 
 1. Install dependencies:
 
@@ -77,3 +91,9 @@ DEMO_USERNAME=your_site_username
 DEMO_PASSWORD=your_site_password
 GMAIL_USER=your_google_email
 GMAIL_PASSWORD=your_google_password
+
+## Troubleshooting
+
+- If the automation fails, check the API response for detailed error messages
+- Verify that your environment variables are correctly set
+- Ensure your Google account doesn't have 2FA enabled, or use an app password
