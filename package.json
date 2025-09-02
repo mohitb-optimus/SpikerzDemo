@@ -15,5 +15,10 @@
     "allure-playwright": "^2.0.0",
     "dotenv": "^16.0.0",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   }
 }

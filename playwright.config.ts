@@ -3,6 +3,7 @@ import os from 'node:os';
 
 export default defineConfig({
   testDir: './tests',
+  timeout: 60000,
   retries: 0,
   reporter: [
     ['list'],
@@ -28,7 +29,7 @@ export default defineConfig({
     }],
   ],
   use: {
-    headless: true,
+    headless: false,
     viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

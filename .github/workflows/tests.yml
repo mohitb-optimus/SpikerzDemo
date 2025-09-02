@@ -86,19 +86,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
           force_orphan: true
-
-      # Add results summary
-      - name: Add test results to summary
-        if: always()
-        run: |
-          PASSED=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="passed")] | length' test-results/test-results.json)
-          FAILED=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="failed")] | length' test-results/test-results.json)
-          SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[].status=="skipped")] | length' test-results/test-results.json)
-
-          echo "## 📊 Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Passed: $PASSED" >> $GITHUB_STEP_SUMMARY
-          echo "- ❌ Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
-          echo "- ⚡ Skipped: $SKIPPED" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## ✅ Allure Report Published" >> $GITHUB_STEP_SUMMARY
-          echo "🔗 [Open Allure Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)" >> $GITHUB_STEP_SUMMARY

@@ -1,122 +1,125 @@
-import { Page, TestInfo, expect, Response } from '@playwright/test';
+import { Page, TestInfo, Response, expect } from '@playwright/test';
 
 export abstract class BaseTestHelper {
-  // ... keep safeGoto, safeClick, safeFill, safeType, safeWaitForSelector,safeWaitForResponse ...
+  // Default config (can be overridden in constructor)
+  private readonly defaultRetries = 3;
+  private readonly defaultTimeout = 5000;
+  private readonly retryDelayMs = 1000;
 
-  // ---------- SAFE GOTO ----------
-  protected async safeGoto(
-    page: Page,
-    url: string,
+  constructor(
+    private readonly retries: number = 3,
+    private readonly timeout: number = 5000,
+    private readonly exponentialBackoff: boolean = true
+  ) {}
+
+  // ---------- STRUCTURED LOGGING ----------
+  private async log(
     testInfo: TestInfo,
-    retries = 3,
-    timeout = 15000
+    actionName: string,
+    attempt: number,
+    status: 'success' | 'retry' | 'failure',
+    error?: unknown
   ) {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      action: actionName,
+      attempt,
+      status,
+      error: error ? String(error) : undefined,
+    };
+
+    // Print to console for local runs
+    console.log(`[BaseTestHelper]`, JSON.stringify(logEntry, null, 2));
+
+    // Attach to Playwright report
+    await testInfo.attach(`${actionName}-attempt-${attempt}-${status}`, {
+      body: JSON.stringify(logEntry, null, 2),
+      contentType: 'application/json',
+    });
+  }
+
+  // ---------- CORE RETRY WRAPPER ----------
+  private async withRetry<T>(
+    actionName: string,
+    action: () => Promise<T>,
+    page: Page,
+    testInfo: TestInfo,
+    retries = this.retries,
+    timeout = this.timeout
+  ): Promise<T> {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const response = await page.goto(url, {
-          waitUntil: 'domcontentloaded',
-          timeout,
-        });
+        const result = await action();
+        await this.log(testInfo, actionName, attempt, 'success');
+        return result;
+      } catch (error) {
+        lastError = error;
+        await this.log(testInfo, actionName, attempt, attempt < retries ? 'retry' : 'failure', error);
 
+        if (attempt < retries) {
+          const delay =
+            this.exponentialBackoff ? this.retryDelayMs * Math.pow(2, attempt - 1) : this.retryDelayMs;
+          await new Promise((r) => setTimeout(r, delay));
+        }
+      }
+    }
+
+    // Final failure: attach screenshot & HTML
+    await this.attachScreenshot(page, testInfo, `Final ${actionName} failure`);
+    await testInfo.attach(`Final-${actionName}-HTML`, {
+      body: await page.content(),
+      contentType: 'text/html',
+    });
+
+    throw lastError;
+  }
+
+  // ---------- SAFE GOTO ----------
+  protected async safeGoto(page: Page, url: string, testInfo: TestInfo, retries?: number, timeout?: number) {
+    return this.withRetry(
+      'safeGoto',
+      async () => {
+        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeout ?? this.timeout });
         if (!response || !response.ok()) {
           throw new Error(`Navigation failed: ${response?.status()} ${response?.statusText()}`);
         }
-
         return response;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Navigation attempt ${attempt} error`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-
-    await this.attachScreenshot(page, testInfo, 'Final navigation error screenshot');
-    await testInfo.attach('Final navigation error HTML', {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
 
   // ---------- SAFE CLICK ----------
-  protected async safeClick(
-    page: Page,
-    selector: string,
-    testInfo: TestInfo,
-    retries = 3,
-    timeout = 5000
-  ) {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const locator = page.locator(selector);
-        await locator.click({ timeout });
-        return;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Click attempt ${attempt} on ${selector} failed`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-
-    await this.attachScreenshot(page, testInfo, `Final click error on ${selector}`);
-    await testInfo.attach(`Final click error HTML on ${selector}`, {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
+  protected async safeClick(page: Page, selector: string, testInfo: TestInfo, retries?: number, timeout?: number) {
+    return this.withRetry(
+      `safeClick-${selector}`,
+      async () => {
+        await page.locator(selector).click({ timeout: timeout ?? this.timeout });
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
 
   // ---------- SAFE FILL ----------
-  protected async safeFill(
-    page: Page,
-    selector: string,
-    value: string,
-    testInfo: TestInfo,
-    retries = 3,
-    timeout = 5000
-  ) {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const locator = page.locator(selector);
-        await locator.fill(value, { timeout });
-        return;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Fill attempt ${attempt} on ${selector} failed`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-
-    await this.attachScreenshot(page, testInfo, `Final fill error on ${selector}`);
-    await testInfo.attach(`Final fill error HTML on ${selector}`, {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
+  protected async safeFill(page: Page, selector: string, value: string, testInfo: TestInfo, retries?: number, timeout?: number) {
+    return this.withRetry(
+      `safeFill-${selector}`,
+      async () => {
+        await page.locator(selector).fill(value, { timeout: timeout ?? this.timeout });
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
 
   // ---------- SAFE TYPE ----------
@@ -126,87 +129,56 @@ export abstract class BaseTestHelper {
     value: string,
     testInfo: TestInfo,
     delayMs = 100,
-    retries = 3,
-    timeout = 5000
+    retries?: number,
+    timeout?: number
   ) {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
+    return this.withRetry(
+      `safeType-${selector}`,
+      async () => {
         const locator = page.locator(selector);
-        await locator.click({ timeout }); // ensure focus
-        await locator.pressSequentially(value, { delay: delayMs, timeout }); // ✅ modern replacement
-        return;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Type attempt ${attempt} on ${selector} failed`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-
-    await this.attachScreenshot(page, testInfo, `Final type error on ${selector}`);
-    await testInfo.attach(`Final type error HTML on ${selector}`, {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
+        await locator.click({ timeout: timeout ?? this.timeout }); // ensure focus
+        await locator.pressSequentially(value, { delay: delayMs, timeout: timeout ?? this.timeout });
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
-  // ---------- SAFE WAIT ----------
+
+  // ---------- SAFE WAIT FOR SELECTOR ----------
   protected async safeWaitForSelector(
     page: Page,
     selector: string,
     testInfo: TestInfo,
     state: 'visible' | 'attached' | 'hidden' | 'detached' = 'visible',
-    retries = 3,
-    timeout = 5000
+    retries?: number,
+    timeout?: number
   ) {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const locator = page.locator(selector);
-        await locator.waitFor({ state, timeout });
-        return;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Wait attempt ${attempt} for ${selector} failed`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-
-    await this.attachScreenshot(page, testInfo, `Final wait error on ${selector}`);
-    await testInfo.attach(`Final wait error HTML on ${selector}`, {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
+    return this.withRetry(
+      `safeWaitForSelector-${selector}`,
+      async () => {
+        await page.locator(selector).waitFor({ state, timeout: timeout ?? this.timeout });
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
 
+  // ---------- SAFE WAIT FOR RESPONSE ----------
   protected async safeWaitForResponse(
     page: Page,
     urlOrPredicate: string | ((response: Response) => boolean | Promise<boolean>),
     testInfo: TestInfo,
-    retries = 3,
-    timeout = 10000
+    retries?: number,
+    timeout?: number
   ): Promise<Response> {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const response = await page.waitForResponse(urlOrPredicate, { timeout });
-
+    return this.withRetry(
+      `safeWaitForResponse`,
+      async () => {
+        const response = await page.waitForResponse(urlOrPredicate, { timeout: timeout ?? this.timeout });
         if (!response.ok()) {
           const bodyText = await response.text().catch(() => '[Could not read body]');
           await testInfo.attach(`Response ${response.status()} ${response.statusText()}`, {
@@ -215,61 +187,32 @@ export abstract class BaseTestHelper {
           });
           throw new Error(`Response failed: ${response.status()} ${response.statusText()}`);
         }
-
         return response;
-      } catch (error) {
-        lastError = error;
-
-        await testInfo.attach(`Response wait attempt ${attempt} failed`, {
-          body: String(error),
-          contentType: 'text/plain',
-        });
-
-        if (attempt < retries) {
-          await new Promise(r => setTimeout(r, 1000));
-        }
-      }
-    }
-
-    // ❌ Final failure → attach screenshot + HTML
-    await this.attachScreenshot(page, testInfo, 'Final response wait error screenshot');
-    await testInfo.attach('Final response wait error HTML', {
-      body: await page.content(),
-      contentType: 'text/html',
-    });
-
-    throw lastError;
-  }
-  // ---------- Wait for URL ----------
-  protected async safeWaitForURL(
-    page: Page,
-    urlOrPattern: string | RegExp,
-    testInfo: TestInfo,
-    timeout: number = 15000,
-    retries: number = 3
-  ): Promise<void> {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        await page.waitForURL(urlOrPattern, { timeout });
-        return;
-      } catch (error) {
-        if (attempt === retries) {
-          await testInfo.attach(`safeWaitForURL-failed-${attempt}`, {
-            body: await page.screenshot(),
-            contentType: 'image/png',
-          });
-          throw new Error(
-            `safeWaitForURL failed after ${retries} retries. Last error: ${String(error)}`
-          );
-        }
-      }
-    }
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
   }
 
+  // ---------- SAFE WAIT FOR URL ----------
+  protected async safeWaitForURL(page: Page, urlOrPattern: string | RegExp, testInfo: TestInfo, retries?: number, timeout?: number) {
+    return this.withRetry(
+      `safeWaitForURL`,
+      async () => {
+        await page.waitForURL(urlOrPattern, { timeout: timeout ?? this.timeout });
+      },
+      page,
+      testInfo,
+      retries,
+      timeout
+    );
+  }
 
   // ---------- COMMON LOGIN FLOW ----------
   protected async loginToSpikerz(page: Page, testInfo: TestInfo, demoUrl: string) {
-    await this.safeGoto(page, `${demoUrl}`, testInfo, 3, 15000);
+    await this.safeGoto(page, demoUrl, testInfo);
     await expect(page).toHaveTitle('Spikerz | #1 Social Media Protection Service');
     await this.attachScreenshot(page, testInfo, 'Spikerz Page login');
   }

@@ -18,7 +18,9 @@ export class SocialConnectPage extends BaseTestHelper {
     await this.safeClick(this.page, this.youtubeImage, testInfo, 3, 10000);
     await this.safeWaitForResponse(this.page, '**/assets/youtube-branding/yt_logo_rgb_light.png', testInfo, 3, 15000);
     console.log('YouTube image loaded');
-    await this.safeClick(this.page, this.connectWithYoutubeButton, testInfo, 3, 10000);
+    await this.page.waitForLoadState('load'); // Wait for 2 seconds to ensure the button is fully loaded
+    await this.safeClick(this.page, this.connectWithYoutubeButton, testInfo,3, 10000);
+    console.log('Clicked Connect with Youtube button');
   }
 
   async isYoutubeConnected(testInfo: TestInfo) {
