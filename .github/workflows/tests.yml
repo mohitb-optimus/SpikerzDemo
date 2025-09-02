@@ -7,9 +7,9 @@ on:
     branches: [ main ]
 
 permissions:
-  contents: write   # ✅ allow push to gh-pages
-  pages: write      # for GitHub Pages deployment
-  id-token: write   # for OIDC (optional, good practice)
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   test:
@@ -23,10 +23,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t spikerzdemo .
 
-      # Run Playwright tests inside container
-      - name: Run Playwright tests in Docker
+      # Install Xvfb on GitHub Actions runner
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      # Run Playwright tests inside container (headed with fallback)
+      - name: Run Playwright tests in Docker (headed with Xvfb, fallback to headless)
         run: |
-          docker run --rm \
+          set -e
+          echo "▶️ Running Playwright in headed mode with Xvfb..."
+          if ! docker run --rm \
             -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
             -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
             -e GMAIL_USER=${{ secrets.GMAIL_USER }} \
@@ -37,9 +43,23 @@ jobs:
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/test-results:/app/test-results \
             spikerzdemo \
-            xvfb-run -a npx playwright test --headed --reporter=line,allure-playwright,html
+            xvfb-run -a npx playwright test --headed --reporter=line,allure-playwright,html; then
+              echo "⚠️ Headed mode failed — retrying in headless mode..."
+              docker run --rm \
+                -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
+                -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
+                -e GMAIL_USER=${{ secrets.GMAIL_USER }} \
+                -e GMAIL_PASSWORD=${{ secrets.GMAIL_PASSWORD }} \
+                -e DEMO_URL=${{ secrets.DEMO_URL }} \
+                -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
+                -v ${{ github.workspace }}/allure-results:/app/allure-results \
+                -v ${{ github.workspace }}/allure-report:/app/allure-report \
+                -v ${{ github.workspace }}/test-results:/app/test-results \
+                spikerzdemo \
+                npx playwright test --headless --reporter=line,allure-playwright,html
+          fi
 
-      # Upload Playwright HTML report (artifact)
+      # Upload Playwright HTML report
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
