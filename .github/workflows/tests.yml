@@ -27,11 +27,11 @@ jobs:
       - name: Install Xvfb
         run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      # Run Playwright tests inside container (headed with fallback)
-      - name: Run Playwright tests in Docker (headed with Xvfb, fallback to headless)
+      # Run Playwright tests inside container 
+      - name: Run Playwright tests in Docker (headless mode , fallback to headed with Xvfb)
         run: |
           set -e
-          echo "▶️ Running Playwright in headed mode with Xvfb..."
+          echo "▶️ Running Playwright in headless mode first..."
           if ! docker run --rm \
             -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
             -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
@@ -43,8 +43,8 @@ jobs:
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/test-results:/app/test-results \
             spikerzdemo \
-            xvfb-run -a npx playwright test --headed --reporter=line,allure-playwright,html; then
-              echo "⚠️ Headed mode failed — retrying in headless mode..."
+            npx playwright test --headless --reporter=line,allure-playwright,html; then
+              echo "⚠️ Headless mode failed — retrying in headed mode..."
               docker run --rm \
                 -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
                 -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
@@ -56,7 +56,7 @@ jobs:
                 -v ${{ github.workspace }}/allure-report:/app/allure-report \
                 -v ${{ github.workspace }}/test-results:/app/test-results \
                 spikerzdemo \
-                npx playwright test --headless --reporter=line,allure-playwright,html
+                xvfb-run -a npx playwright test --headed --reporter=line,allure-playwright,html
           fi
 
       # Upload Playwright HTML report
