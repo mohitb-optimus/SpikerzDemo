@@ -38,7 +38,7 @@ jobs:
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
             spikerzdemo \
-            npx playwright test --reporter=line,allure-playwright,html
+            npx playwright test --reporter=line,allure-playwright
 
       # Upload raw Playwright results (screenshots, traces, logs)
       - name: Upload Playwright test-results
