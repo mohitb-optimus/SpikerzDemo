@@ -4,7 +4,6 @@ import os from 'node:os';
 export default defineConfig({
   testDir: './tests',
   retries: 0,
-
   reporter: [
     ['list'],
     ['allure-playwright', {
@@ -22,14 +21,17 @@ export default defineConfig({
         { name: 'Accessibility', messageRegex: '.*accessibility.*' }
       ],
     }],
-    ['html', { open: 'never' }],
+    // Fix for CI environments - ensure HTML report never opens
+    ['html', { 
+      open: 'never',
+      outputFolder: 'playwright-report'
+    }],
   ],
-
   use: {
     headless: true,
     viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    trace: 'retain-on-failure',  // ✅ add this
+    trace: 'retain-on-failure',
   },
 });
