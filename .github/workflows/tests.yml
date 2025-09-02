@@ -23,16 +23,12 @@ jobs:
       - name: Build Docker image
         run: docker build -t spikerzdemo .
 
-      # Install Xvfb on GitHub Actions runner
-      - name: Install Xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
-
       # Run Playwright tests inside container 
-      - name: Run Playwright tests in Docker (headless mode , fallback to headed with Xvfb)
+      - name: Run Playwright tests in Docker (headless mode )
         run: |
           set -e
-          echo "▶️ Running Playwright in headless mode first..."
-          if ! docker run --rm \
+          echo "▶️ Running Playwright in headless mode..."
+          docker run --rm \
             -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
             -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
             -e GMAIL_USER=${{ secrets.GMAIL_USER }} \
@@ -43,21 +39,7 @@ jobs:
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/test-results:/app/test-results \
             spikerzdemo \
-            npx playwright test --reporter=line,allure-playwright,html; then
-              echo "⚠️ Headless mode failed — retrying in headed mode..."
-              docker run --rm \
-                -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \
-                -e DEMO_PASSWORD=${{ secrets.DEMO_PASSWORD }} \
-                -e GMAIL_USER=${{ secrets.GMAIL_USER }} \
-                -e GMAIL_PASSWORD=${{ secrets.GMAIL_PASSWORD }} \
-                -e DEMO_URL=${{ secrets.DEMO_URL }} \
-                -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
-                -v ${{ github.workspace }}/allure-results:/app/allure-results \
-                -v ${{ github.workspace }}/allure-report:/app/allure-report \
-                -v ${{ github.workspace }}/test-results:/app/test-results \
-                spikerzdemo \
-                xvfb-run -a npx playwright test --headed --reporter=line,allure-playwright,html
-          fi
+            npx playwright test --reporter=line,allure-playwright,html
 
       # Upload Playwright HTML report
       - name: Upload Playwright HTML report
