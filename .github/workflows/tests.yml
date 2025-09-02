@@ -43,9 +43,7 @@ jobs:
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
             spikerzdemo \
-            bash -c "npx playwright test --reporter=line,allure-playwright,html \
-            && npx playwright show-report --reporter html --output=playwright-report \
-            && npx allure generate allure-results --clean -o allure-report"
+            npx playwright test --reporter=line,allure-playwright,html
 
       # Upload artifacts
       - name: Upload raw test-results
