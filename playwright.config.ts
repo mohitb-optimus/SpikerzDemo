@@ -4,9 +4,9 @@ import os from 'node:os';
 export default defineConfig({
   testDir: './tests',
   retries: 0,
+
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['allure-playwright', {
       detail: true,
       suiteTitle: true,
@@ -22,6 +22,7 @@ export default defineConfig({
         { name: 'Accessibility', messageRegex: '.*accessibility.*' }
       ],
     }],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
 
   use: {
@@ -29,5 +30,6 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    trace: 'retain-on-failure',  // ✅ add this
   },
 });

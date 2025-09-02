@@ -1,8 +1,3 @@
-Got it 👍 — here’s the **copy-paste ready** README.md content with all the updates (Docker, GitHub Actions, GitHub Pages, Debugging Failures).
-
----
-
-````markdown
 # Spikerz Demo Assessment with Playwright and Typescript
 
 This project is a Playwright + TypeScript test automation framework with Allure + Playwright reporting, Docker support, and CI/CD integration via GitHub Actions.
@@ -128,36 +123,31 @@ Enable Pages in GitHub:
 
 ---
 
-## 🐞 Debugging Failures
+## 🐞 Debugging Failures with Playwright Artifacts
 
-When a test fails:
+When a test fails, GitHub Actions automatically uploads useful artifacts:
 
-* **Artifacts** → Downloadable from the **Actions run summary**:
+- **`test-results/`** → contains raw Playwright outputs:
+  - `trace.zip` → Full timeline of the test (steps, DOM snapshots, console logs, network traffic).
+  - `.png` screenshots → Captures the state of the page at failure.
+  - `.webm` videos → Replay the entire browser session.
 
-  * `test-results/` → raw Playwright logs, screenshots, HTML snapshots, traces
-  * `playwright-report/` → static HTML report with step-by-step logs
-  * `allure-report/` → rich historical test report
+- **`playwright-report/`** → Static HTML report showing all steps.
+- **`allure-report/`** → Historical report with trends and categories.
 
-* **Traces & Screenshots**
-  If enabled in `playwright.config.ts`:
+### ▶️ Replaying a Trace
 
-  ```ts
-  use: {
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-  }
-  ```
+To investigate a failure:
 
-  You’ll get:
+1. Download the **`test-results` artifact** from GitHub Actions.
+2. Locate the `trace.zip` file inside the failed test folder.
+3. Open it locally with:
 
-  * `trace.zip` (open with `npx playwright show-trace trace.zip`)
-  * `.png` screenshots
-  * `.webm` videos
+   ```sh
+   npx playwright show-trace trace.zip
 
-These artifacts make it easy to replay failures and debug issues directly from CI.
 
----
+
 
 ## ✅ Summary
 
@@ -165,10 +155,3 @@ These artifacts make it easy to replay failures and debug issues directly from C
 * **CI/CD** → Runs on push/PR, reports deployed to GitHub Pages
 * **Artifacts** → Debug failures with screenshots, traces, logs
 * **Reports** → Playwright + Allure for complete visibility
-
-```
-
----
-
-👉 Do you want me to also drop in a **ready-to-use `playwright.config.ts` snippet** with `trace`, `screenshot`, and `video` enabled so your team doesn’t have to configure it manually?
-```
