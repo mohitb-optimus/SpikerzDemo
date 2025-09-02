@@ -27,6 +27,11 @@ jobs:
       - name: Run Playwright tests in Docker
         run: |
           docker run --rm \
+            -e DEMO_USERNAME=${{ secrets.USERNAME }} \
+            -e DEMO_PASSWORD=${{ secrets.PASSWORD }} \
+            -e GMAIL_USER=${{ secrets.GMAIL_USER }} \
+            -e GMAIL_PASSWORD=${{ secrets.GMAIL_PASSWORD }} \
+            -e DEMO_URL=${{ secrets.DEMO_URL }} \
             -v ${{ github.workspace }}/test-results:/app/test-results \
             -v ${{ github.workspace }}/allure-results:/app/allure-results \
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
