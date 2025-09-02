@@ -240,6 +240,32 @@ export abstract class BaseTestHelper {
 
     throw lastError;
   }
+  // ---------- Wait for URL ----------
+  protected async safeWaitForURL(
+    page: Page,
+    urlOrPattern: string | RegExp,
+    testInfo: TestInfo,
+    timeout: number = 15000,
+    retries: number = 3
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        await page.waitForURL(urlOrPattern, { timeout });
+        return;
+      } catch (error) {
+        if (attempt === retries) {
+          await testInfo.attach(`safeWaitForURL-failed-${attempt}`, {
+            body: await page.screenshot(),
+            contentType: 'image/png',
+          });
+          throw new Error(
+            `safeWaitForURL failed after ${retries} retries. Last error: ${String(error)}`
+          );
+        }
+      }
+    }
+  }
+
 
   // ---------- COMMON LOGIN FLOW ----------
   protected async loginToSpikerz(page: Page, testInfo: TestInfo, demoUrl: string) {

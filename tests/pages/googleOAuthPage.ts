@@ -24,7 +24,7 @@ export class GoogleOAuthPage extends BaseTestHelper {
   }
 
   async acceptPermissions(testInfo: TestInfo) {
-    await this.page.waitForURL('**/signin/oauth/v2/consentsummary?authuser=0*', { timeout: 15000 });
+    await this.safeWaitForURL(this.page, '**/signin/oauth/v2/consentsummary?authuser=0*', testInfo, 15000);
     await this.safeWaitForSelector(this.page, this.continueButton, testInfo, 'visible',3, 15000);
     await this.page.getByRole('checkbox', { name: 'Select all' }).check();
     await this.safeClick(this.page, this.continueButton, testInfo);
