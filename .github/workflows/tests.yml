@@ -23,6 +23,12 @@ jobs:
       - name: Build Playwright Docker image
         run: docker build -t spikerzdemo .
 
+      #Debug Secrets
+      - name: Debug Secrets
+        run: |
+          echo "DEMO_USERNAME: ${{ secrets.DEMO_USERNAME }}"
+          echo "DEMO_URL: ${{ secrets.DEMO_URL }}"
+
       # Run tests inside Docker
       - name: Run Playwright tests in Docker
         run: |
