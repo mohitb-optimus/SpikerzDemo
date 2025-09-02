@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  playwright:
+    build: .
+    env_file:
+      - ./test/utils/env.ts
+    volumes:
+      - ./test-results:/app/test-results
+      - ./allure-results:/app/allure-results
+      - ./playwright-report:/app/playwright-report

@@ -1,5 +1,4 @@
 import { chromium, Browser, BrowserContext } from 'playwright';
-import * as fs from 'fs';
 
 export class BrowserManager {
   public browser!: Browser;
@@ -11,12 +10,6 @@ export class BrowserManager {
   async newContextWithAuth(username: string, password: string): Promise<BrowserContext> {
     return this.browser.newContext({
       httpCredentials: { username, password }
-    });
-  }
-
-  async newContextFromStorage(path: string): Promise<BrowserContext> {
-    return this.browser.newContext({
-      storageState: fs.existsSync(path) ? path : undefined
     });
   }
 

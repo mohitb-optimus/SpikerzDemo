@@ -3,7 +3,7 @@ import os from 'node:os';
 
 export default defineConfig({
   testDir: './tests',
-  retries: 1,
+  retries: 0,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
@@ -25,8 +25,7 @@ export default defineConfig({
   ],
 
   use: {
-    storageState: 'auth.json',
-    headless: false,
+    headless: true,
     viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
