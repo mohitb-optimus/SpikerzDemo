@@ -22,11 +22,11 @@ export default defineConfig({
         { name: 'Accessibility', messageRegex: '.*accessibility.*' }
       ],
     }],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['html', { open: 'never' }],
   ],
 
   use: {
-    headless: true,
+    headless: false,
     viewport: { width: 1280, height: 720 },
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

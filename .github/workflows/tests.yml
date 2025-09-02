@@ -9,8 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-          CI: true 
     steps:
       # Checkout repo
       - name: Checkout repository
@@ -25,7 +23,9 @@ jobs:
         run: docker build -t spikerzdemo .
 
       # Run Playwright tests inside Docker
-      - name: Run Playwright tests in Docker
+      - name: Run Playwright tests in Docker   
+        env:
+          CI: true 
         run: |
           docker run --rm \
             -e DEMO_USERNAME=${{ secrets.DEMO_USERNAME }} \

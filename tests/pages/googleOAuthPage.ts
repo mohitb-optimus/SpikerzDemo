@@ -18,7 +18,7 @@ export class GoogleOAuthPage extends BaseTestHelper {
 
   async login(username: string, password: string, testInfo: TestInfo) {
     await this.safeType(this.page, this.emailField, username, testInfo);
-    await this.safeClick(this.page, this.nextButton, testInfo, 3, 30000);
+    await this.safeClick(this.page, this.nextButton, testInfo, 3, 10000);
     await this.safeType(this.page, this.passwordField, password, testInfo);
     await this.safeClick(this.page, this.nextButton, testInfo, 3, 30000);
   }
