@@ -42,10 +42,13 @@ jobs:
             -v ${{ github.workspace }}/allure-results:/app/allure-results \
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
-            spikerzdemo
+            spikerzdemo \
+            bash -c "npx playwright test --reporter=line,allure-playwright,html \
+            && npx playwright show-report --reporter html --output=playwright-report \
+            && npx allure generate allure-results --clean -o allure-report"
 
-      # Upload Playwright raw test-results and reports
-      - name: Upload Playwright raw test-results
+      # Upload artifacts
+      - name: Upload raw test-results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -65,12 +68,19 @@ jobs:
         with:
           name: allure-report
           path: allure-report
-          
-      # Deploy reports to GitHub Pages
+
+      # Deploy to GitHub Pages
+      - name: Prepare reports for GitHub Pages
+        if: always()
+        run: |
+          mkdir -p public/reports
+          cp -r playwright-report public/reports/playwright-report
+          cp -r allure-report public/reports/allure-report
+
       - name: Deploy reports to GitHub Pages
         if: success()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: ./public/reports
           keep_files: true
