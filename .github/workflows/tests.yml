@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write   # ✅ allow push to gh-pages
+  pages: write      # for GitHub Pages deployment
+  id-token: write   # for OIDC (optional, good practice)
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,7 +21,7 @@ jobs:
 
       # Build Docker image using your Dockerfile
       - name: Build Docker image
-        run: docker build -t playwright-tests .
+        run: docker build -t spikerzdemo .
 
       # Run Playwright tests inside container
       - name: Run Playwright tests in Docker
@@ -31,7 +36,7 @@ jobs:
             -v ${{ github.workspace }}/allure-results:/app/allure-results \
             -v ${{ github.workspace }}/allure-report:/app/allure-report \
             -v ${{ github.workspace }}/test-results:/app/test-results \
-            playwright-tests
+            spikerzdemo
 
       # Upload Playwright HTML report (artifact)
       - name: Upload Playwright HTML report
