@@ -1,15 +1,23 @@
+# Use Playwright base image with all browsers pre-installed
 FROM mcr.microsoft.com/playwright:v1.47.2-jammy
 
+# Set working directory
 WORKDIR /app
 
+# Copy package.json and package-lock.json first (for caching)
 COPY package*.json ./
+
+# Install dependencies
 RUN npm ci
 
+# Copy the rest of the project
 COPY . .
 
-RUN mkdir -p test-results allure-results playwright-report allure-report
+# Build TypeScript
+RUN npm run build
 
-RUN npx playwright install --with-deps
+# Set environment variables (ensures non-interactive CI mode)
+ENV CI=true
 
-# Install Allure CLI globally
-RUN npm install -g allure-commandline
+# Default command (can be overridden in GitHub Actions if needed)
+CMD ["npx", "playwright", "test", "--reporter=html,line,allure-playwright,json", "--output=test-results"]
