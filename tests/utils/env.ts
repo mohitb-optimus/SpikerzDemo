@@ -5,3 +5,4 @@ export const env = {
   gmailPassword: process.env.GMAIL_PASSWORD ?? '',
   demoUrl: process.env.DEMO_URL ?? '',
 };
+
