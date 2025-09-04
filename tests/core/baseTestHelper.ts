@@ -1,7 +1,14 @@
 import { Page, TestInfo, Response, expect } from '@playwright/test';
 
+type HelperOptions = {
+  retries?: number;
+  timeout?: number;
+  exponentialBackoff?: boolean;
+  debugArtifacts?: boolean; // ← off by default; when true, attaches attempt logs
+};
+
 export abstract class BaseTestHelper {
-  // Default config (can be overridden in constructor)
+  // Defaults
   private readonly defaultRetries = 3;
   private readonly defaultTimeout = 5000;
   private readonly retryDelayMs = 1000;
@@ -9,10 +16,11 @@ export abstract class BaseTestHelper {
   constructor(
     private readonly retries: number = 3,
     private readonly timeout: number = 5000,
-    private readonly exponentialBackoff: boolean = true
+    private readonly exponentialBackoff: boolean = true,
+    private readonly debugArtifacts: boolean = false, // ← NEW: opt-in debug attachments
   ) {}
 
-  // ---------- STRUCTURED LOGGING ----------
+  // ---------- STRUCTURED LOGGING (console only unless debugArtifacts=true) ----------
   private async log(
     testInfo: TestInfo,
     actionName: string,
@@ -28,14 +36,16 @@ export abstract class BaseTestHelper {
       error: error ? String(error) : undefined,
     };
 
-    // Print to console for local runs
+    // Always log to console
     console.log(`[BaseTestHelper]`, JSON.stringify(logEntry, null, 2));
 
-    // Attach to Playwright report
-    await testInfo.attach(`${actionName}-attempt-${attempt}-${status}`, {
-      body: JSON.stringify(logEntry, null, 2),
-      contentType: 'application/json',
-    });
+    // Attach to report only if debugArtifacts explicitly enabled
+    if (this.debugArtifacts) {
+      await testInfo.attach(`${actionName}-attempt-${attempt}-${status}`, {
+        body: JSON.stringify(logEntry, null, 2),
+        contentType: 'application/json',
+      });
+    }
   }
 
   // ---------- CORE RETRY WRAPPER ----------
@@ -66,7 +76,7 @@ export abstract class BaseTestHelper {
       }
     }
 
-    // Final failure: attach screenshot & HTML
+    // Final failure ONLY: attach one screenshot + HTML to help debugging
     await this.attachScreenshot(page, testInfo, `Final ${actionName} failure`);
     await testInfo.attach(`Final-${actionName}-HTML`, {
       body: await page.content(),
@@ -181,6 +191,7 @@ export abstract class BaseTestHelper {
         const response = await page.waitForResponse(urlOrPredicate, { timeout: timeout ?? this.timeout });
         if (!response.ok()) {
           const bodyText = await response.text().catch(() => '[Could not read body]');
+          // This attachment happens only on failure of the awaited response (part of the failing attempt)
           await testInfo.attach(`Response ${response.status()} ${response.statusText()}`, {
             body: bodyText,
             contentType: 'text/plain',
@@ -214,13 +225,12 @@ export abstract class BaseTestHelper {
   protected async loginToSpikerz(page: Page, testInfo: TestInfo, demoUrl: string) {
     await this.safeGoto(page, demoUrl, testInfo);
     await expect(page).toHaveTitle('Spikerz | #1 Social Media Protection Service');
-    await this.attachScreenshot(page, testInfo, 'Spikerz Page login');
   }
 
-  // ---------- SCREENSHOT ----------
+  // ---------- SCREENSHOT (used only on final failure) ----------
   protected async attachScreenshot(page: Page, testInfo: TestInfo, label: string) {
     await testInfo.attach(label, {
-      body: await page.screenshot(),
+      body: await page.screenshot({ fullPage: true }),
       contentType: 'image/png',
     });
   }
