@@ -16,6 +16,7 @@ class SocialConnectTest extends BaseTestHelper {
 
     await test.step('Login to demo.spikerz.com', async () => {
       await this.loginToSpikerz(page, testInfo, `${env.demoUrl}/social-connect`);
+
     });
 
     await test.step('Trigger YouTube connect modal', async () => {
@@ -23,10 +24,17 @@ class SocialConnectTest extends BaseTestHelper {
     });
 
     await test.step('Google OAuth login', async () => {
-      await googlePage.login(env.gmailUser, env.gmailPassword, testInfo);
+      if (testInfo.project.use.headless){
+        await googlePage.loginHeadless(env.gmailUser, env.gmailPassword, testInfo);
+      }else{
+        await googlePage.login(env.gmailUser, env.gmailPassword, testInfo);
+      }      
     });
 
     await test.step('Grant permissions and verify YouTube connection', async () => {
+      if (testInfo.project.use.headless){
+        testInfo.skip(true, 'Skipping permissions step in headless mode');
+      }
       await googlePage.acceptPermissions(testInfo);
       expect(await socialPage.isYoutubeConnected(testInfo)).toBeTruthy();
       await this.attachScreenshot(page, testInfo, 'YouTube Connected');

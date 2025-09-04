@@ -1,15 +1,11 @@
 import { Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
 import { BaseTestHelper } from '../core/baseTestHelper';
-import { chromium } from 'playwright-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import fetch from 'node-fetch';
 
 export class GoogleOAuthPage extends BaseTestHelper {
   constructor(
     private browser: Browser,
     private context: BrowserContext,
-    private page: Page,
-    private captchaApiKey?: string 
+    private page: Page
   ) {
     super();
   }
@@ -22,6 +18,7 @@ export class GoogleOAuthPage extends BaseTestHelper {
   private readonly passwordField = 'internal:role=textbox[name="Enter your password"i]'; 
   private readonly nextPasswordButton = 'internal:role=button[name="Next"i]';
   private readonly continueButton = 'internal:role=button[name="Continue"i]';
+  private readonly captchaImg = '#captchaimg';
 
   async login(username: string, password: string, testInfo: TestInfo) {
     
@@ -40,6 +37,22 @@ export class GoogleOAuthPage extends BaseTestHelper {
     await this.page.waitForLoadState('domcontentloaded'); // Wait for potential redirects
     console.log('Password submitted, waiting for permissions page...');
   }
+
+  async loginHeadless(username: string, password: string, testInfo: TestInfo) {
+    
+    console.log('Starting Google OAuth login...');
+    await this.safeWaitForURL(this.page, '**/signin/identifier?opparams**', testInfo);
+    await this.safeType(this.page, this.emailField, username, testInfo);
+    await this.safeClick(this.page, this.googleSignInText, testInfo);
+    await this.safeClick(this.page, this.nextEmailButton, testInfo);
+  
+    console.log('Looking FOr Captcha...');
+    // Detect if a text CAPTCHA appeared
+    const captchaVisible = await this.page.locator('#captchaimg').isVisible().catch(() => false);
+    if (captchaVisible) {
+      testInfo.skip(true, 'Skipping test because CAPTCHA was triggered');
+    }
+  }
     
   
 
@@ -56,4 +69,5 @@ export class GoogleOAuthPage extends BaseTestHelper {
     await this.page.getByRole('checkbox', { name: 'Select all' }).check();
     await this.safeClick(this.page, this.continueButton, testInfo);
   }
+
 }
