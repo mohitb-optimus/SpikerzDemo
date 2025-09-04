@@ -1,0 +1,52 @@
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:50.951Z",
+  "action": "safeGoto",
+  "attempt": 1,
+  "status": "success"
+}
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:52.416Z",
+  "action": "safeClick-nz-card >> internal:has-text=\"Youtube Soon!\"i >> internal:role=img",
+  "attempt": 1,
+  "status": "success"
+}
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:54.054Z",
+  "action": "safeWaitForResponse",
+  "attempt": 1,
+  "status": "success"
+}
+YouTube image loaded
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:54.478Z",
+  "action": "safeClick-app-google-and-youtube-login >> internal:role=button",
+  "attempt": 1,
+  "status": "success"
+}
+Clicked Connect with Youtube button
+Starting Google OAuth login...
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:54.677Z",
+  "action": "safeWaitForURL",
+  "attempt": 1,
+  "status": "success"
+}
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:57.243Z",
+  "action": "safeType-internal:role=textbox[name=\"Email or phone\"i]",
+  "attempt": 1,
+  "status": "success"
+}
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:57.284Z",
+  "action": "safeClick-internal:text=\"Sign in with Google\"i",
+  "attempt": 1,
+  "status": "success"
+}
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:57.532Z",
+  "action": "safeClick-internal:role=button[name=\"Next\"i]",
+  "attempt": 1,
+  "status": "success"
+}
+Looking FOr Captcha...

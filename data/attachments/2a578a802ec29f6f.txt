@@ -1,0 +1,6 @@
+[BaseTestHelper] {
+  "timestamp": "2025-09-04T12:07:50.843Z",
+  "action": "safeGoto",
+  "attempt": 1,
+  "status": "success"
+}

@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"d438f2dd1a2471c5e1274d288a3b82ea","name":"specs/homePage.spec.ts","statistic":{"failed":0,"broken":0,"skipped":0,"passed":1,"unknown":0,"total":1}},{"uid":"db149b644307bc06bced51a3ffeb574d","name":"specs/socialConnect.spec.ts","statistic":{"failed":0,"broken":0,"skipped":1,"passed":0,"unknown":0,"total":1}}]}
